@@ -1,0 +1,1 @@
+- [Maven Java runtime](maven-java-runtime.md) — Maven may use an older JDK than `javac`; align `JAVA_HOME` with the compiler.

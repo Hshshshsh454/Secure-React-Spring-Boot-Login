@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Secure Login"
+description = "A production-oriented login application with a React browser client and separate Spring Boot/MySQL authentication service, including secure sessions, CSRF protection, and account controls."
+version = "1.0.0"
+id = "artifacts/secure-login"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18811
+
+[services.development]
+run = "pnpm --filter @workspace/secure-login run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/secure-login", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/secure-login/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18811"
+BASE_PATH = "/"

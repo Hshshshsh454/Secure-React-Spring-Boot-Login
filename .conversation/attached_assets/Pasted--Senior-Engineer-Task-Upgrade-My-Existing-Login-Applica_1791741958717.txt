@@ -1,0 +1,529 @@
+# Senior Engineer Task: Upgrade My Existing Login Application to Production-Ready Authentication
+
+## 1. Role and Objective
+
+Act as a Senior Backend Engineer, Application Security Engineer, and Performance Engineer.
+
+I have an existing basic login application consisting of two separate codebases:
+
+- **Frontend:** React.js
+- **Backend:** Java Spring Boot
+- **Database:** MySQL
+- **Deployment:** Cloud environment
+- **Load target:** 1,000 concurrent login requests
+
+I will provide my existing frontend and backend source code. Your responsibility is to audit the current implementation, identify weaknesses, and upgrade it into a secure, maintainable, production-oriented application.
+
+**This is an existing application, not a demo or a greenfield project.**
+
+Do not replace everything with a new sample application. Understand the current implementation first, preserve working functionality, and make targeted changes wherever possible.
+
+The frontend and backend must remain separate applications that communicate through REST APIs.
+
+Do not claim the application is production-ready or supports 1,000 concurrent logins until the relevant security tests and load tests have been executed successfully.
+
+---
+
+## 2. Mandatory Workflow
+
+Follow these phases in order. Do not skip the analysis phase or generate the entire implementation before understanding the existing code.
+
+### Phase 1: Audit the Existing Codebase
+
+Inspect all relevant frontend and backend files, including:
+
+**React frontend**
+- Login page and form components
+- Input validation
+- API service layer and HTTP client
+- Authentication state management
+- Protected routes
+- Logout functionality
+- Token or session handling
+- Environment variables and API configuration
+- Error handling and loading states
+
+**Spring Boot backend**
+- Controller and REST endpoint structure
+- Authentication service
+- Spring Security configuration
+- User entity and repository
+- Password encoder
+- Authentication provider
+- DTOs and validation
+- Exception handlers
+- JWT or session implementation
+- MySQL configuration
+- Database migrations and schema
+- Logging, rate limiting and monitoring
+- Existing unit and integration tests
+
+First, provide:
+1. Current architecture and request flow.
+2. Existing file and package structure.
+3. What already works.
+4. Security vulnerabilities and functional defects.
+5. Performance bottlenecks.
+6. Missing production features.
+7. A prioritized remediation plan.
+
+Do not invent files, dependencies, existing functionality, or test results. If information is missing, identify it explicitly.
+
+### Phase 2: Define the Target Architecture
+
+Keep the frontend and backend independently runnable and deployable.
+
+Target request flow:
+
+React Login UI
+→ HTTPS
+→ Cloud load balancer or reverse proxy
+→ Spring Boot REST API
+→ Spring Security authentication
+→ MySQL user lookup
+→ Password hash verification
+→ Session or token issuance
+→ Authenticated API requests
+
+Define the exact architecture based on my existing code.
+
+Explain:
+- Frontend/backend responsibilities.
+- API contracts and HTTP status codes.
+- Authentication lifecycle.
+- Database schema and indexes.
+- Security boundaries.
+- Session or JWT strategy.
+- Cloud deployment topology.
+- Scaling limitations and failure modes.
+
+Do not introduce microservices, Kafka, Redis, Kubernetes or additional infrastructure without demonstrating why the existing architecture requires them.
+
+### Phase 3: Implement Production-Oriented Authentication
+
+#### A. Authentication and password security
+
+Implement or repair:
+- Database-backed user authentication.
+- Spring Security integration.
+- BCrypt or Argon2 password hashing with an appropriate, benchmarked work factor.
+- Generic authentication failure messages.
+- Server-side account-status checks.
+- Input validation and normalization.
+- Secure registration, if registration already exists or is required.
+- Password reset using short-lived, single-use tokens, if applicable.
+- Logout and session/token invalidation.
+- Protection against account enumeration and brute-force attacks.
+- Safe handling of malformed requests and unexpected exceptions.
+
+Never store plaintext passwords or reversible password encryption.
+
+Never implement a custom password-hashing algorithm.
+
+Do not expose stack traces, internal errors, password hashes, or sensitive user information through API responses.
+
+#### B. Choose the appropriate session strategy
+
+Inspect the existing authentication mechanism before changing it.
+
+For a browser-based application, evaluate secure server-managed sessions using cookies with HttpOnly, Secure and appropriate SameSite attributes.
+
+If JWT is already required, implement or validate:
+- Cryptographic signature verification.
+- Expiration and issuer/audience validation where applicable.
+- Short-lived access tokens.
+- Secure refresh-token storage and rotation.
+- Refresh-token reuse detection where supported.
+- Logout and revocation behavior.
+- Signing-key management and rotation.
+
+Do not store long-lived credentials in localStorage by default.
+
+If cookie authentication is used, implement CSRF protection appropriate to the application.
+
+Do not combine multiple authentication mechanisms unnecessarily. Explain the chosen approach and its trade-offs.
+
+#### C. Frontend requirements
+
+Preserve my existing UI unless a change is necessary.
+
+Implement or repair:
+- Email/username and password validation.
+- Submit-button loading state.
+- Prevention of accidental duplicate submissions.
+- Clear, accessible validation messages.
+- Generic authentication error messages.
+- Network timeout and server-error handling.
+- Safe handling of expired sessions.
+- Protected routes where applicable.
+- Logout and authentication-state cleanup.
+- Keyboard accessibility and responsive behavior.
+- No secrets, database credentials or signing keys in frontend code.
+
+Do not treat frontend validation as a security boundary. Repeat all security-relevant validation on the backend.
+
+Ensure React never connects directly to MySQL.
+
+#### D. Backend API design
+
+Preserve existing API contracts when possible.
+
+If changes are necessary, document:
+- Old endpoint and new endpoint.
+- Request and response formats.
+- HTTP status codes.
+- Migration impact on the frontend.
+- Backward compatibility.
+
+Use DTOs instead of exposing database entities directly.
+
+Apply appropriate validation, centralized exception handling, safe logging and consistent response structures.
+
+Do not return sensitive user fields in authentication responses.
+
+#### E. MySQL and database integrity
+
+Inspect the actual schema and implement necessary improvements:
+- Unique constraints for normalized login identifiers.
+- Indexes for authentication lookups.
+- Parameterized queries or safe ORM operations.
+- Appropriate transaction boundaries.
+- Database migrations.
+- Connection timeouts and pool configuration.
+- Safe handling of duplicate registration.
+- Protection against connection exhaustion.
+- Least-privilege database credentials.
+- Backups and recovery considerations.
+
+Do not execute destructive schema changes without explaining their impact.
+
+Do not use Hibernate `ddl-auto=create` or `create-drop` in production.
+
+Prefer version-controlled database migrations when compatible with the current project.
+
+---
+
+## 3. Mandatory Edge-Case Checklist
+
+Create a test case for every applicable scenario below. For each case, document the expected behavior, implementation location and verification method.
+
+### Authentication and identity
+
+1. Correct username and password.
+2. Incorrect password.
+3. Unknown username/email.
+4. Empty credentials.
+5. Missing fields, null values and malformed JSON.
+6. Malformed email and oversized input.
+7. Leading/trailing whitespace and identifier normalization.
+8. Duplicate registration.
+9. Disabled, suspended, deleted or unverified accounts.
+10. Concurrent login attempts for the same account.
+11. Password changed while an existing session is active.
+12. Password reset token expired or reused.
+13. Expired, malformed, altered or incorrectly signed JWT.
+14. Expired, rotated or revoked refresh token.
+15. Logout followed by reuse of old credentials.
+16. Direct access to protected endpoints without authentication.
+17. User attempting to access another user's data.
+18. Role and privilege escalation attempts.
+19. SQL injection and mass-assignment attempts.
+20. Account enumeration through response content or timing differences.
+
+### Abuse prevention and security
+
+21. Repeated incorrect passwords.
+22. Distributed credential-stuffing attempts.
+23. Login rate-limit threshold exceeded.
+24. Requests with spoofed forwarding headers.
+25. Cross-site request forgery when cookie authentication is used.
+26. Cross-origin requests from unauthorized origins.
+27. Cross-site scripting in displayed user-controlled values.
+28. Passwords or tokens appearing in application logs.
+29. Session fixation or cookie configuration errors.
+30. Weak, missing or improperly rotated signing keys.
+31. Brute-force defenses that accidentally lock out legitimate users.
+32. Rate limiting that does not work across multiple application instances.
+
+### Concurrency and reliability
+
+33. Two users authenticate simultaneously.
+34. One thousand concurrent valid login requests.
+35. One thousand concurrent invalid login requests, in a separate controlled test.
+36. Sudden login burst.
+37. Gradual traffic ramp-up.
+38. Sustained traffic at the target concurrency.
+39. Requests exceeding server or proxy timeouts.
+40. MySQL unavailable during authentication.
+41. MySQL connections exhausted.
+42. Slow authentication queries.
+43. Spring Boot instance restarting during requests.
+44. Cloud load balancer routing to an unhealthy instance.
+45. One application instance failing while others remain healthy.
+46. Connection pool saturation.
+47. JVM memory pressure and garbage-collection pauses.
+48. Password hashing consuming excessive CPU.
+49. Rate limiter or session store unavailable, if used.
+50. Repeated client submissions and network retries.
+51. Partial failures and ambiguous login outcomes.
+52. Recovery after the database or application becomes available again.
+
+### Browser and integration
+
+53. Frontend and backend API URL misconfiguration.
+54. CORS preflight failures.
+55. Backend returning HTML or malformed JSON unexpectedly.
+56. Slow network and interrupted requests.
+57. Expired authentication during navigation.
+58. Multiple browser tabs sharing or invalidating sessions.
+59. Cookie behavior across frontend/backend origins.
+60. Frontend deployed while the backend is unavailable.
+61. Backend API contract changing without a coordinated frontend update.
+62. Direct navigation to a protected route after refresh.
+
+Do not blindly implement every theoretical feature. Explain which cases apply to the current authentication design and why. Never disable security protections merely to improve load-test results.
+
+---
+
+## 4. Performance Target: 1,000 Concurrent Login Requests
+
+Treat 1,000 concurrent login requests as a performance requirement to validate, not a guaranteed capability.
+
+### Load-testing tool
+
+Use Grafana k6 unless the project already has a suitable load-testing framework.
+
+Create separate test scenarios for:
+1. Valid logins with unique synthetic test accounts.
+2. Invalid credentials.
+3. Gradual ramp-up to 1,000 virtual users.
+4. A short, controlled login burst.
+5. Sustained load at peak concurrency.
+6. Login followed by representative authenticated API requests.
+7. Recovery after a controlled overload or dependency failure.
+
+Use a staging environment that resembles production.
+
+Never load-test third-party identity providers or production users without explicit authorization.
+
+### Required measurements
+
+Capture:
+- Requests per second.
+- Successful logins per second.
+- HTTP status-code distribution.
+- Login success and failure rates.
+- p50, p95 and p99 latency.
+- CPU and memory utilization.
+- JVM heap and garbage-collection pauses.
+- Active, idle and pending database connections.
+- MySQL CPU, connection count and query latency.
+- Rate-limit responses.
+- Timeouts and connection errors.
+- Load-balancer latency and health-check failures.
+
+Use unique synthetic accounts and account for rate limits. Do not reuse one account for all virtual users unless that is an explicitly separate concurrency test.
+
+### Initial acceptance criteria
+
+Propose measurable targets before testing, such as:
+- p95 login latency below 500 ms.
+- Unexpected HTTP 5xx error rate below 1%.
+- All valid synthetic accounts authenticate successfully.
+- No unauthorized access or cross-user data leakage.
+- No uncontrolled queue growth or connection-pool exhaustion.
+- Stable resource utilization at the target load.
+
+Treat these as provisional goals. Adjust them based on infrastructure, password-hashing cost and actual business requirements.
+
+A test passes only when its measured results satisfy the agreed criteria. Never fabricate benchmark results or claim that a test was run when it was not.
+
+### k6 deliverables
+
+Provide:
+- A maintainable k6 script.
+- Configurable target URL and test credentials.
+- Synthetic-account setup instructions.
+- Concurrency stages and peak duration.
+- Authentication success assertions.
+- Latency and error-rate thresholds.
+- A separate burst-test configuration.
+- Commands for running the tests.
+- Guidance for interpreting failures and diagnosing bottlenecks.
+
+Use environment variables for test credentials and avoid hardcoding secrets in committed scripts.
+
+---
+
+## 5. Cloud Deployment and Operations
+
+Inspect my actual deployment configuration and identify required changes.
+
+Cover:
+- HTTPS and TLS termination.
+- Environment-specific frontend API URLs.
+- Spring Boot production configuration.
+- Cloud secrets management.
+- Load-balancer health checks.
+- Horizontal scaling where justified.
+- Database network isolation and least-privilege access.
+- Connection-pool sizing.
+- Timeouts and graceful shutdown.
+- Application and database monitoring.
+- Structured logging and redaction.
+- Backup and recovery.
+- Dependency and container vulnerability scanning.
+- CI/CD validation and rollback.
+- Deployment smoke tests.
+
+Ensure the system remains secure if one backend instance is restarted or removed from service.
+
+Do not expose Actuator management endpoints publicly without appropriate protection. Expose only the endpoints needed for monitoring.
+
+Do not place secrets in Git, Docker images, frontend environment variables that are compiled into browser assets, or public configuration files.
+
+---
+
+## 6. Testing and Verification
+
+Create or update tests using the frameworks appropriate to the existing project.
+
+### Backend
+- Unit tests for authentication services.
+- Integration tests for Spring Security and MySQL.
+- API tests for success and failure cases.
+- Tests for authorization and user isolation.
+- Tests for token/session expiry and logout.
+- Tests for database constraints and duplicate requests.
+- Tests for exception handling and dependency failures.
+
+### Frontend
+- Login form validation tests.
+- Loading and duplicate-submit tests.
+- Authentication success/failure tests.
+- Protected-route tests.
+- Expired-session and logout tests.
+- Network-error tests.
+
+### End-to-end
+Verify the actual React-to-Spring-Boot-to-MySQL request flow.
+
+Do not use mocked authentication as the only proof of backend correctness.
+
+Use synthetic data, isolated test databases and safe test credentials.
+
+Provide exact commands for installing dependencies, running the application, running tests and executing the load test.
+
+Report each test as:
+- PASS: executed and passed.
+- FAIL: executed and failed.
+- NOT RUN: not executed.
+- BLOCKED: cannot run because a dependency or required configuration is unavailable.
+
+Never mark an unexecuted test as passing.
+
+---
+
+## 7. Code Quality and Repository Requirements
+
+Follow the existing project conventions unless they are unsafe or inadequate.
+
+- Keep React and Spring Boot as separate projects.
+- Use modular, maintainable components and services.
+- Follow Spring Security and Spring Boot best practices.
+- Use clear naming and appropriate DTOs.
+- Keep controllers thin and business logic in services.
+- Avoid duplicated validation and authentication logic.
+- Use explicit configuration for development, testing and production.
+- Preserve existing business functionality.
+- Avoid unnecessary dependencies and architecture changes.
+- Add comments where design decisions are non-obvious.
+- Update documentation and environment-variable examples.
+- Never commit real credentials or private keys.
+
+Before modifying a file, explain why the change is necessary. Do not delete or replace existing code without reviewing its dependencies and behavior.
+
+---
+
+## 8. Required Output Format
+
+Produce the work in this order:
+
+**Part 1 — Existing system assessment**
+- Architecture diagram.
+- Existing file structure.
+- Current request flow.
+- Critical security defects.
+- Performance bottlenecks.
+- Prioritized remediation plan.
+
+**Part 2 — Target architecture**
+- Updated request flow.
+- Authentication strategy.
+- API contracts.
+- Database changes.
+- Deployment and scaling decisions.
+
+**Part 3 — Implementation plan**
+- Exact files to change.
+- Dependencies to add or remove.
+- Ordered implementation steps.
+- Risks and compatibility considerations.
+
+**Part 4 — Code changes**
+For every changed file, provide:
+- Exact file path.
+- Complete code when necessary to apply the change safely.
+- Explanation of important decisions.
+- Any migration or configuration steps.
+
+Do not produce unrelated boilerplate or duplicate existing files unnecessarily.
+
+**Part 5 — Edge-case coverage**
+- Complete edge-case matrix.
+- Implementation references.
+- Test cases and expected results.
+- Any intentionally deferred items and their risks.
+
+**Part 6 — Load testing**
+- k6 scripts.
+- Test-data setup.
+- Commands.
+- Metrics and thresholds.
+- Failure diagnosis.
+
+**Part 7 — Deployment**
+- Required cloud configuration.
+- Environment variables.
+- Database migration steps.
+- Smoke tests.
+- Rollback procedure.
+
+**Part 8 — Final readiness report**
+Report:
+- Security findings fixed and outstanding.
+- Tests passed, failed, blocked and not run.
+- Load-test results, if actually executed.
+- Confirmed concurrency and throughput.
+- Known limitations.
+- Remaining production risks.
+- Go/no-go recommendation with explicit reasons.
+
+---
+
+## 9. Working Rules
+
+1. Start by asking me to provide the React and Spring Boot project structures and relevant source files, unless they are already attached.
+2. Review the existing code before generating replacements.
+3. Explain the architecture and critical findings before implementation.
+4. Work in small, reviewable phases.
+5. If the codebase is too large, request the next relevant files rather than guessing.
+6. Ask before making destructive changes or changing authentication semantics.
+7. Do not assume a JWT implementation exists if it is not present.
+8. Do not assume a cloud provider, server size, Java version, Spring Boot version or deployment topology.
+9. Identify assumptions explicitly.
+10. Never claim security, production readiness or 1,000-user capacity without evidence.
+11. Prioritize security and correctness before optimization.
+12. Finish each phase with the changes made, verification performed, unresolved issues and the next required action.
+
+**Begin with Part 1 only. Inspect my existing application, explain its current architecture and identify the highest-priority issues. Wait for my approval before proceeding to implementation.**
