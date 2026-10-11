@@ -10,15 +10,15 @@ name = "API Server"
 paths = ["/api"]
 
 [services.development]
-run = "bash artifacts/api-server/spring/run.sh"
+run = "bash spring/run.sh"
 
 [services.production]
 
 [services.production.build]
-args = ["bash", "artifacts/api-server/spring/build.sh"]
+args = ["bash", "spring/build.sh"]
 
 [services.production.run]
-args = ["java", "-jar", "artifacts/api-server/spring/target/secure-login-api.jar"]
+args = ["java", "-jar", "spring/target/secure-login-api.jar"]
 
 [services.production.run.env]
 PORT = "8080"
