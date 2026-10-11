@@ -1,1 +1,2 @@
 - [Maven Java runtime](maven-java-runtime.md) — Maven may use an older JDK than `javac`; align `JAVA_HOME` with the compiler.
+- [Artifact service paths](artifact-service-working-directory.md) — Managed service commands run from the artifact directory; use artifact-relative paths or anchor scripts.
